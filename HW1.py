@@ -1,4 +1,7 @@
+import re
 from datetime import datetime, timedelta
+
+PHONE_PATTERN = re.compile(r'^\+?\d{1,15}$')
 
 class Field:
     def __init__(self, value):
@@ -21,6 +24,8 @@ class Record:
         self.birthday = None
 
     def add_phone(self, phone):
+        if not PHONE_PATTERN.match(phone):
+            raise ValueError("Invalid phone number format.")
         self.phones.append(phone)
 
     def add_birthday(self, birthday_str):
@@ -38,8 +43,8 @@ def input_error(func):
         try:
             return func(*args, **kwargs)
         except (KeyError, IndexError, ValueError) as e:
-            if isinstance(e, ValueError) and str(e) == "not enough values to unpack (expected at least 2, got 1)":
-                return "Empty input. Enter name and phone number!."
+            if isinstance(e, ValueError) and str(e) in ["Enter name and phone please", "Invalid phone number format."]:
+                return str(e)
             elif isinstance(e, KeyError):
                 return "Enter name!"
             elif isinstance(e, IndexError):
@@ -50,20 +55,31 @@ def input_error(func):
 
 @input_error
 def add_contact(args, book: AddressBook):
+    if len(args.split()) < 2:
+        raise ValueError("Enter name and phone please")
+
     name, phone, *_ = args.split()
+    if not PHONE_PATTERN.match(phone):
+        raise ValueError("Invalid phone number format.")
+
     record = book.find(name)
     message = "Contact updated."
     if record is None:
         record = Record(name)
         book.add_record(record)
         message = "Contact added."
-    if phone:
-        record.add_phone(phone)
+    record.add_phone(phone)
     return message
 
 @input_error
 def change_contact(user_input, book: AddressBook):
+    if len(user_input.split()) < 2:
+        raise ValueError("Enter name and phone please")
+
     name, new_phone_number, *_ = user_input.split()
+    if not PHONE_PATTERN.match(new_phone_number):
+        raise ValueError("Invalid phone number format.")
+
     record = book.find(name)
     if record:
         record.phones = [new_phone_number]
