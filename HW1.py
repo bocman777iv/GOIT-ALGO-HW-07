@@ -1,7 +1,7 @@
 import re
 from datetime import datetime, timedelta
 
-PHONE_PATTERN = re.compile(r'^\+?\d{1,15}$')
+PHONE_PATTERN = re.compile(r'^\+?\d{10}$')
 
 class Field:
     def __init__(self, value):
